@@ -118,7 +118,8 @@ export default function SimulatorPanel({ onResult }) {
               name="profession"
               value={form.profession}
               onChange={handleChange}
-              className="input-field cursor-pointer appearance-none"
+              className="input-field cursor-pointer"
+              style={{ background: 'rgba(255,255,255,0.05)' }}
               aria-label="Profession type"
             >
               {PROFESSIONS.map((p) => (
