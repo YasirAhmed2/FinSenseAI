@@ -4,35 +4,23 @@ const nextConfig = {
 
   // ── Compiler optimizations ──────────────────────────────────────────────
   compiler: {
-    // Remove console.log in production
+    // Strip console.log calls in production builds
     removeConsole: process.env.NODE_ENV === 'production',
   },
 
-  // ── Experimental features ───────────────────────────────────────────────
+  // ── Package import optimization (works with both Turbopack & Webpack) ───
+  // Pre-analyses these heavy packages once so every route loads them instantly
   experimental: {
-    // Pre-optimize heavy packages so Turbopack/Webpack doesn't re-parse them
-    // on every route — this is the biggest win for fast first-load
     optimizePackageImports: [
       'recharts',
       'framer-motion',
-      'react-dom',
     ],
-
-    // Turbopack-specific: pre-warm all known routes in parallel
-    // so navigating to /login, /signup, /dashboard is instant
-    turbo: {
-      // Resolve aliases (mirrors any webpack aliases you'd set)
-      resolveAlias: {},
-    },
   },
 
-  // ── Webpack fallback (used only when running next dev:webpack) ──────────
-  webpack: (config, { dev, isServer }) => {
-    if (dev && !isServer) {
-      // Faster source maps in development
-      config.devtool = 'eval-cheap-module-source-map';
-    }
-    return config;
+  // ── Turbopack config (Next.js 15 — top-level, not inside experimental) ──
+  turbopack: {
+    // No extra aliases needed — kept here for future extension
+    resolveAlias: {},
   },
 };
 

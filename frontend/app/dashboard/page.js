@@ -11,11 +11,12 @@ import InsightChart from '../../components/InsightChart';
 function QuickStat({ label, value, sub, color, bg, border, icon }) {
   return (
     <div
-      className="flex items-center gap-3 px-4 py-3 rounded-2xl flex-shrink-0 transition-all duration-200 hover:scale-105 cursor-default"
+      className="glass-sheen flex items-center gap-3 px-4 py-3 rounded-2xl flex-shrink-0 transition-all duration-200 hover:scale-105 cursor-default"
       style={{
         background: bg,
         border: `1px solid ${border}`,
-        backdropFilter: 'blur(10px)',
+        backdropFilter: 'blur(20px) saturate(160%)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12)',
       }}
     >
       <div
@@ -120,12 +121,8 @@ export default function DashboardPage() {
 
         {/* ── Welcome Banner ───────────────────────────────────────────────── */}
         <div className="mb-6 animate-fade-in">
-          <div
-            className="card p-5 sm:p-6 relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, rgba(79,142,247,0.06) 0%, var(--card-bg) 50%, rgba(16,232,154,0.04) 100%)',
-              borderColor: 'var(--border-hover)',
-            }}
+        <div
+            className="crystal-panel p-5 sm:p-6 relative overflow-hidden"
           >
             {/* Ambient glows */}
             <div

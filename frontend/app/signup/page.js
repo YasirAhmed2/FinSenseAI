@@ -205,7 +205,7 @@ export default function SignupPage() {
         </div>
 
         {/* ── Card ── */}
-        <div className="card p-8 relative animate-scale-in">
+        <div className="crystal-panel p-8 relative animate-scale-in">
           <ThemeToggle />
 
           {/* Top gradient line */}
