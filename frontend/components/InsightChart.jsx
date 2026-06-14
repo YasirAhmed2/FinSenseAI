@@ -11,16 +11,26 @@ import {
   Cell,
   ReferenceLine,
 } from 'recharts';
+import { useTheme } from './ThemeProvider';
 
-/**
- * Custom tooltip for the chart.
- */
+/* ─── Custom Tooltip ─────────────────────────────────────────────────────── */
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="glass-card px-4 py-3 text-sm border border-white/10">
-        <p className="font-semibold text-white mb-1">{label}</p>
-        <p className="text-[#00D4AA]">
+      <div
+        className="px-4 py-3 rounded-2xl text-sm shadow-xl"
+        style={{
+          background: 'var(--card-bg)',
+          border: '1px solid var(--border-hover)',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+        }}
+      >
+        <p className="font-semibold text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>{label}</p>
+        <p
+          className="font-black text-base"
+          style={{ color: payload[0].payload.color }}
+        >
           PKR {Number(payload[0].value).toLocaleString('en-PK')}
         </p>
       </div>
@@ -29,118 +39,229 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-/**
- * InsightChart — Recharts bar chart showing user income vs tax threshold.
- * @param {{ simulationResult: object | null }} props
- */
+/* ─── Legend Item ────────────────────────────────────────────────────────── */
+function LegendItem({ color, label }) {
+  return (
+    <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+      <div
+        className="w-3 h-3 rounded-sm flex-shrink-0"
+        style={{
+          background: color,
+          boxShadow: `0 0 8px ${color}60`,
+        }}
+      />
+      {label}
+    </div>
+  );
+}
+
+/* ─── InsightChart ───────────────────────────────────────────────────────── */
 export default function InsightChart({ simulationResult }) {
-  // Default demo data when no simulation has been run
+  const { theme } = useTheme();
+
+  const axisColor    = theme === 'dark' ? '#7C8DB5' : '#64748B';
+  const gridColor    = theme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)';
+
   const defaultData = [
-    { name: 'Tax-Free Limit', value: 600000, color: '#00D4AA' },
-    { name: 'Your Income', value: 0, color: '#6C63FF' },
-    { name: '2.5% Bracket Limit', value: 1200000, color: '#FFB347' },
+    { name: 'Tax-Free Limit', value: 600000,  color: '#10E89A' },
+    { name: 'Your Income',    value: 0,        color: '#4F8EF7' },
+    { name: '1% Bracket',    value: 1200000,  color: '#F59E0B' },
   ];
 
   const chartData = simulationResult
     ? [
-        { name: 'Tax-Free Limit', value: 600000, color: '#00D4AA' },
-        { name: 'Your Income', value: simulationResult.annualIncome, color: simulationResult.status === 'No Tax Applicable' ? '#00D4AA' : '#6C63FF' },
-        { name: '2.5% Bracket', value: 1200000, color: '#FFB347' },
-        { name: '12.5% Bracket', value: 2400000, color: '#FF9F43' },
+        { name: 'Tax-Free Limit', value: 600000,                       color: '#10E89A' },
+        { name: 'Your Income',    value: simulationResult.annualIncome, color: simulationResult.status === 'No Tax Applicable' ? '#10E89A' : '#4F8EF7' },
+        { name: '1% Bracket',    value: 1200000,                       color: '#F59E0B' },
+        { name: '11% Bracket',   value: 2200000,                       color: '#F97316' },
       ]
     : defaultData;
 
   const formatYAxis = (value) => {
     if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-    if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
+    if (value >= 1000)    return `${(value / 1000).toFixed(0)}K`;
     return value;
   };
 
+  const legendItems = [
+    { color: '#10E89A', label: 'Tax-free zone (≤ PKR 600K)' },
+    { color: '#4F8EF7', label: 'Your annual income' },
+    { color: '#F59E0B', label: '1% tax bracket threshold' },
+    ...(simulationResult ? [{ color: '#F97316', label: '11% bracket threshold' }] : []),
+  ];
+
   return (
-    <div className="glass-card p-5">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
+    <div
+      className="card p-5 sm:p-6 relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, rgba(79,142,247,0.03) 0%, var(--card-bg) 60%, rgba(16,232,154,0.02) 100%)',
+        borderColor: 'var(--border-hover)',
+      }}
+    >
+      {/* Ambient glow */}
+      <div
+        className="absolute top-0 right-0 w-60 h-60 rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle, rgba(79,142,247,0.05), transparent 70%)',
+          filter: 'blur(30px)',
+        }}
+      />
+
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FFB347] to-[#6C63FF] flex items-center justify-center flex-shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
+          <div
+            className="icon-badge"
+            style={{
+              background: 'linear-gradient(135deg, #F59E0B, #4F8EF7)',
+              boxShadow: '0 4px 12px rgba(245,158,11,0.25)',
+            }}
+          >
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
           <div>
-            <h2 className="font-semibold text-white text-sm">User Financial Insight</h2>
-            <p className="text-[#8888aa] text-xs">Income vs FBR Tax Thresholds (Annual PKR)</p>
+            <h2 className="font-bold text-sm leading-none" style={{ color: 'var(--text)' }}>Financial Insight Chart</h2>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+              Income vs FBR Tax Thresholds (Annual PKR)
+            </p>
           </div>
         </div>
 
-        {simulationResult && (
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/5 border border-white/8">
+        {/* Status pill */}
+        {simulationResult ? (
+          <div
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold flex-shrink-0"
+            style={{
+              background: simulationResult.status === 'No Tax Applicable' ? 'var(--accent-dim)' : 'var(--primary-dim)',
+              border: simulationResult.status === 'No Tax Applicable' ? '1px solid var(--accent-border)' : '1px solid var(--primary-border)',
+              color: simulationResult.status === 'No Tax Applicable' ? 'var(--accent)' : 'var(--primary)',
+            }}
+          >
             <div
-              className="w-2.5 h-2.5 rounded-full"
-              style={{ background: simulationResult.status === 'No Tax Applicable' ? '#00D4AA' : '#6C63FF' }}
+              className="w-2 h-2 rounded-full"
+              style={{
+                background: simulationResult.status === 'No Tax Applicable' ? 'var(--accent)' : 'var(--primary)',
+                boxShadow: simulationResult.status === 'No Tax Applicable' ? '0 0 6px var(--accent)' : '0 0 6px var(--primary)',
+              }}
             />
-            <span className="text-xs text-[#F0F0F5] font-medium">{simulationResult.status}</span>
+            {simulationResult.status}
+          </div>
+        ) : (
+          <div
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs"
+            style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-faint)',
+            }}
+          >
+            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            Run a simulation to see your data
           </div>
         )}
       </div>
 
-      {/* Chart */}
-      <ResponsiveContainer width="100%" height={240}>
-        <BarChart data={chartData} margin={{ top: 8, right: 16, left: 8, bottom: 0 }} barCategoryGap="30%">
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="rgba(255,255,255,0.05)"
-            vertical={false}
-          />
-          <XAxis
-            dataKey="name"
-            tick={{ fill: '#8888aa', fontSize: 11 }}
-            axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
-            tickLine={false}
-          />
-          <YAxis
-            tickFormatter={formatYAxis}
-            tick={{ fill: '#8888aa', fontSize: 11 }}
-            axisLine={false}
-            tickLine={false}
-            width={48}
-          />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-          {simulationResult && (
-            <ReferenceLine
-              y={simulationResult.annualIncome}
-              stroke={simulationResult.status === 'No Tax Applicable' ? '#00D4AA' : '#6C63FF'}
-              strokeDasharray="4 4"
-              strokeWidth={1.5}
-            />
-          )}
-          <Bar dataKey="value" radius={[8, 8, 0, 0]} maxBarSize={80}>
-            {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.85} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      {/* ── Chart ── */}
+      <div className="relative z-10">
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart
+            data={chartData}
+            margin={{ top: 10, right: 16, left: 8, bottom: 0 }}
+            barCategoryGap="28%"
+          >
+            <defs>
+              {chartData.map((entry, i) => (
+                <linearGradient key={i} id={`bar-grad-${i}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={entry.color} stopOpacity={0.9} />
+                  <stop offset="100%" stopColor={entry.color} stopOpacity={0.55} />
+                </linearGradient>
+              ))}
+            </defs>
 
-      {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-white/6">
-        <div className="flex items-center gap-2 text-xs text-[#8888aa]">
-          <div className="w-3 h-3 rounded-sm bg-[#00D4AA]" />
-          Tax-free zone
-        </div>
-        <div className="flex items-center gap-2 text-xs text-[#8888aa]">
-          <div className="w-3 h-3 rounded-sm bg-[#6C63FF]" />
-          Your income
-        </div>
-        <div className="flex items-center gap-2 text-xs text-[#8888aa]">
-          <div className="w-3 h-3 rounded-sm bg-[#FFB347]" />
-          Higher bracket
-        </div>
-        {!simulationResult && (
-          <span className="ml-auto text-xs text-[#8888aa] italic">
-            Run a simulation to see your income on this chart
-          </span>
-        )}
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={gridColor}
+              vertical={false}
+            />
+            <XAxis
+              dataKey="name"
+              tick={{ fill: axisColor, fontSize: 10, fontWeight: 500 }}
+              axisLine={{ stroke: gridColor }}
+              tickLine={false}
+              interval={0}
+            />
+            <YAxis
+              tickFormatter={formatYAxis}
+              tick={{ fill: axisColor, fontSize: 10 }}
+              axisLine={false}
+              tickLine={false}
+              width={48}
+            />
+            <Tooltip
+              content={<CustomTooltip />}
+              cursor={{ fill: 'rgba(79,142,247,0.04)', radius: 8 }}
+            />
+
+            {simulationResult && (
+              <ReferenceLine
+                y={simulationResult.annualIncome}
+                stroke={simulationResult.status === 'No Tax Applicable' ? '#10E89A' : '#4F8EF7'}
+                strokeDasharray="6 4"
+                strokeWidth={1.5}
+                strokeOpacity={0.7}
+                label={{
+                  value: `Your Income: ${formatYAxis(simulationResult.annualIncome)}`,
+                  fill: axisColor,
+                  fontSize: 10,
+                  position: 'insideTopRight',
+                  fontWeight: 500,
+                }}
+              />
+            )}
+
+            <Bar dataKey="value" radius={[10, 10, 0, 0]} maxBarSize={88}>
+              {chartData.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={`url(#bar-grad-${index})`}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
+
+      {/* ── Legend ── */}
+      <div
+        className="flex flex-wrap items-center gap-4 sm:gap-6 mt-5 pt-5 relative z-10"
+        style={{ borderTop: '1px solid var(--border)' }}
+      >
+        {legendItems.map((item) => (
+          <LegendItem key={item.label} {...item} />
+        ))}
+      </div>
+
+      {/* ── Empty state hint ── */}
+      {!simulationResult && (
+        <div
+          className="mt-4 p-3.5 rounded-xl flex items-center gap-2.5 relative z-10"
+          style={{
+            background: 'var(--primary-dim)',
+            border: '1px solid var(--primary-border)',
+          }}
+        >
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--primary)', flexShrink: 0 }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+          </svg>
+          <p className="text-xs" style={{ color: 'var(--primary)' }}>
+            Run a simulation in the Financial Simulator above to see your income plotted against FBR tax thresholds.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
